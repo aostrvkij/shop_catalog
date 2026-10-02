@@ -1,10 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% block title %}{{ category.name }}{% endblock %}
+{% block content %}
+<h1>{{ category.name }}</h1>
+{% if category.description %}<p>{{ category.description }}</p>{% endif %}
 
-</body>
-</html>
+<div class="products-grid">
+    {% for p in category.products %}
+    <a href="{{ url_for('product_view', pid=p.id) }}" class="product-card">
+        {% if p.image %}
+            <img src="{{ url_for('static', filename='uploads/' + p.image) }}" alt="{{ p.name }}">
+        {% else %}
+            <div class="no-image">Нет фото</div>
+        {% endif %}
+        <h3>{{ p.name }}</h3>
+        <div class="price">{{ "%.2f"|format(p.price) }} ₽</div>
+    </a>
+    {% else %}
+    <p>В этой категории пока нет товаров.</p>
+    {% endfor %}
+</div>
+{% endblock %}

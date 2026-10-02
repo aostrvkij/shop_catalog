@@ -1,10 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<div class="product-detail">
+    <div class="product-image">
+        {% if product.image %}
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}">
+        {% else %}
+            <div class="no-image big">Нет фото</div>
+        {% endif %}
+    </div>
+    <div class="product-info">
+        <p class="breadcrumb">
+            <a href="{{ url_for('category_view', slug=product.category.slug) }}">{{ product.category.name }}</a>
+        </p>
+        <h1>{{ product.name }}</h1>
+        <p class="price big">{{ "%.2f"|format(product.price) }} ₽</p>
+        <p>{{ product.description }}</p>
+        <p>{% if product.in_stock %}✅ В наличии{% else %}❌ Нет в наличии{% endif %}</p>
+    </div>
+</div>
+{% endblock %}

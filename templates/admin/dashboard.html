@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<h1>Панель управления</h1>
+<div class="stats">
+    <div class="stat-card">Категорий: <b>{{ stats.categories }}</b></div>
+    <div class="stat-card">Товаров: <b>{{ stats.products }}</b></div>
+</div>
+<div class="admin-nav">
+    <a href="{{ url_for('admin_categories') }}" class="btn">Управление категориями</a>
+    <a href="{{ url_for('admin_products') }}" class="btn">Управление товарами</a>
+</div>
+{% endblock %}
