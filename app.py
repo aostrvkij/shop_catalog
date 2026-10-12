@@ -6,15 +6,15 @@ from werkzeug.utils import secure_filename
 from slugify import slugify
 from models import db, User, Category, Product
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'change-me-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shop.db'
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
+application = Flask(__name__)
+application.config['SECRET_KEY'] = 'change-me-in-production'
+application.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shop.db'
+application.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+application.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB
 
-db.init_app(app)
+db.init_app(application)
 
-login_manager = LoginManager(app)
+login_manager = LoginManager(application)
 login_manager.login_view = 'admin_login'
 
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -31,20 +31,20 @@ def load_user(user_id):
 
 # ---------- Публичная часть ----------
 
-@app.route('/')
+@application.route('/')
 def index():
     categories = Category.query.all()
     products = Product.query.order_by(Product.created_at.desc()).limit(8).all()
     return render_template('index.html', categories=categories, products=products)
 
 
-@app.route('/category/<slug>')
+@application.route('/category/<slug>')
 def category_view(slug):
     category = Category.query.filter_by(slug=slug).first_or_404()
     return render_template('category.html', category=category)
 
 
-@app.route('/product/<int:pid>')
+@application.route('/product/<int:pid>')
 def product_view(pid):
     product = Product.query.get_or_404(pid)
     return render_template('product.html', product=product)
@@ -52,7 +52,7 @@ def product_view(pid):
 
 # ---------- Авторизация ----------
 
-@app.route('/admin/login', methods=['GET', 'POST'])
+@application.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
         user = User.query.filter_by(username=request.form['username']).first()
@@ -63,7 +63,7 @@ def admin_login():
     return render_template('admin/login.html')
 
 
-@app.route('/admin/logout')
+@application.route('/admin/logout')
 @login_required
 def admin_logout():
     logout_user()
@@ -72,7 +72,7 @@ def admin_logout():
 
 # ---------- Админ-панель ----------
 
-@app.route('/admin')
+@application.route('/admin')
 @login_required
 def admin_dashboard():
     stats = {
@@ -83,14 +83,14 @@ def admin_dashboard():
 
 
 # Категории
-@app.route('/admin/categories')
+@application.route('/admin/categories')
 @login_required
 def admin_categories():
     categories = Category.query.all()
     return render_template('admin/categories.html', categories=categories)
 
 
-@app.route('/admin/categories/add', methods=['POST'])
+@application.route('/admin/categories/add', methods=['POST'])
 @login_required
 def admin_category_add():
     name = request.form['name'].strip()
@@ -108,7 +108,7 @@ def admin_category_add():
     return redirect(url_for('admin_categories'))
 
 
-@app.route('/admin/categories/<int:cid>/edit', methods=['POST'])
+@application.route('/admin/categories/<int:cid>/edit', methods=['POST'])
 @login_required
 def admin_category_edit(cid):
     cat = Category.query.get_or_404(cid)
@@ -120,7 +120,7 @@ def admin_category_edit(cid):
     return redirect(url_for('admin_categories'))
 
 
-@app.route('/admin/categories/<int:cid>/delete', methods=['POST'])
+@application.route('/admin/categories/<int:cid>/delete', methods=['POST'])
 @login_required
 def admin_category_delete(cid):
     cat = Category.query.get_or_404(cid)
@@ -131,7 +131,7 @@ def admin_category_delete(cid):
 
 
 # Товары
-@app.route('/admin/products')
+@application.route('/admin/products')
 @login_required
 def admin_products():
     products = Product.query.order_by(Product.created_at.desc()).all()
@@ -139,14 +139,14 @@ def admin_products():
     return render_template('admin/products.html', products=products, categories=categories)
 
 
-@app.route('/admin/products/add', methods=['POST'])
+@application.route('/admin/products/add', methods=['POST'])
 @login_required
 def admin_product_add():
     image_name = None
     file = request.files.get('image')
     if file and file.filename and allowed_file(file.filename):
         image_name = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_name))
+        file.save(os.path.join(application.config['UPLOAD_FOLDER'], image_name))
 
     product = Product(
         name=request.form['name'].strip(),
@@ -162,7 +162,7 @@ def admin_product_add():
     return redirect(url_for('admin_products'))
 
 
-@app.route('/admin/products/<int:pid>/edit', methods=['POST'])
+@application.route('/admin/products/<int:pid>/edit', methods=['POST'])
 @login_required
 def admin_product_edit(pid):
     p = Product.query.get_or_404(pid)
@@ -175,7 +175,7 @@ def admin_product_edit(pid):
     file = request.files.get('image')
     if file and file.filename and allowed_file(file.filename):
         image_name = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_name))
+        file.save(os.path.join(application.config['UPLOAD_FOLDER'], image_name))
         p.image = image_name
 
     db.session.commit()
@@ -183,7 +183,7 @@ def admin_product_edit(pid):
     return redirect(url_for('admin_products'))
 
 
-@app.route('/admin/products/<int:pid>/delete', methods=['POST'])
+@application.route('/admin/products/<int:pid>/delete', methods=['POST'])
 @login_required
 def admin_product_delete(pid):
     p = Product.query.get_or_404(pid)
@@ -196,8 +196,8 @@ def admin_product_delete(pid):
 # ---------- Инициализация ----------
 
 def init_db():
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    with app.app_context():
+    os.makedirs(application.config['UPLOAD_FOLDER'], exist_ok=True)
+    with application.app_context():
         db.create_all()
         if not User.query.filter_by(username='admin').first():
             db.session.add(User(
@@ -210,4 +210,4 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    application.run(debug=True)
